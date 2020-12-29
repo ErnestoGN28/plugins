@@ -4,6 +4,7 @@
 
 package io.flutter.plugins.share;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -57,6 +58,27 @@ class Share {
     shareIntent.setType("text/plain");
     Intent chooserIntent = Intent.createChooser(shareIntent, null /* dialog title optional */);
     startActivity(chooserIntent);
+  }
+
+  @SuppressLint("IntentReset")
+  void shareFilesSMS(List<String> paths, List<String> mimeTypes, String text, String subject)
+  throws  IOException{
+    clearExternalShareFolder();
+
+    Intent shareIntent = new Intent();
+    ArrayList<Uri> fileUris = getUrisForPaths(paths);
+    shareIntent.setAction(Intent.ACTION_SENDTO);
+    shareIntent.setData(Uri.parse("smsto:"));
+    shareIntent.putExtra("sms_body", text);
+    shareIntent.putExtra(Intent.EXTRA_STREAM, fileUris.get(0));
+    shareIntent.setType(
+            !mimeTypes.isEmpty() && mimeTypes.get(0) != null ? mimeTypes.get(0) : "*/*");
+    if (text != null) shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+    if (subject != null) shareIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+    shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+    startActivity(shareIntent);
+
   }
 
   void shareFiles(List<String> paths, List<String> mimeTypes, String text, String subject)
